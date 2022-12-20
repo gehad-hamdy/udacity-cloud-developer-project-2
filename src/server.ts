@@ -47,6 +47,7 @@ import { filterImageFromURL, deleteLocalFiles } from './util/util';
 
         return res.status(200).send(absolutePath);
     } catch (e) {
+        res.status(422).send({ message: 'image url is required or malformed' });
         return next(e);
     }
   });
