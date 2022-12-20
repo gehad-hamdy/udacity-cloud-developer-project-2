@@ -1,4 +1,5 @@
 import express from 'express';
+import {Application, Request, Response, NextFunction, Errback} from "express";
 import bodyParser from 'body-parser';
 import { isUri } from 'valid-url';
 import { filterImageFromURL, deleteLocalFiles } from './util/util';
@@ -34,26 +35,21 @@ import { filterImageFromURL, deleteLocalFiles } from './util/util';
 
   // Get a signed url to put a new item in the bucket
   app.get('/filteredimage',
-    async (req: express.Request, res: express.Response) => {
-      let { image_url } = req.query;
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        let  image_url: string  = req.query.image_url;
 
-      if (!image_url || !isUri(image_url)) {
-        return res.status(422).send({ message: 'image url is required or malformed' });
-      }
-      
+        if (!image_url || !isUri(image_url)) {
+          return res.status(422).send({ message: 'image url is required or malformed' });
+        }
 
-      filterImageFromURL(image_url)
-        .then(local_path => {
-          res.sendFile(local_path, err => {
-            deleteLocalFiles([local_path]);
-          })
-        })
-        .catch(err => {
-          console.log(err);
-          res.status(422).send({ message: 'Error in reading the image url' });
-        });
+        let absolutePath: string = await filterImageFromURL(image_url) as string;
 
-    });
+        return res.status(200).send(absolutePath);
+    } catch (e) {
+        return next(e);
+    }
+  });
 
   //! END @TODO1
 

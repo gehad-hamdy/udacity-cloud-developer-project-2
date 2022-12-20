@@ -37,21 +37,18 @@ const util_1 = require("./util/util");
     //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
     /**************************************************************************** */
     // Get a signed url to put a new item in the bucket
-    app.get('/filteredimage', (req, res) => __awaiter(this, void 0, void 0, function* () {
-        let { image_url } = req.query;
-        if (!image_url || !valid_url_1.isUri(image_url)) {
-            return res.status(422).send({ message: 'image url is required or malformed' });
+    app.get('/filteredimage', (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        try {
+            let image_url = req.query.image_url;
+            if (!image_url || !valid_url_1.isUri(image_url)) {
+                return res.status(422).send({ message: 'image url is required or malformed' });
+            }
+            let absolutePath = yield util_1.filterImageFromURL(image_url);
+            return res.status(200).send(absolutePath);
         }
-        util_1.filterImageFromURL(image_url)
-            .then(local_path => {
-            res.sendFile(local_path, err => {
-                util_1.deleteLocalFiles([local_path]);
-            });
-        })
-            .catch(err => {
-            console.log(err);
-            res.status(422).send({ message: 'Error in reading the image url' });
-        });
+        catch (e) {
+            return next(e);
+        }
     }));
     //! END @TODO1
     // Root Endpoint
