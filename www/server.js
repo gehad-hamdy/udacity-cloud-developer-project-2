@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
+const valid_url_1 = require("valid-url");
 const util_1 = require("./util/util");
 (() => __awaiter(this, void 0, void 0, function* () {
     // Init the Express application
@@ -38,8 +39,8 @@ const util_1 = require("./util/util");
     // Get a signed url to put a new item in the bucket
     app.get('/filteredimage', (req, res) => __awaiter(this, void 0, void 0, function* () {
         let { image_url } = req.query;
-        if (!image_url) {
-            return res.status(400).send({ message: 'image url is required or malformed' });
+        if (!image_url || !valid_url_1.isUri(image_url)) {
+            return res.status(422).send({ message: 'image url is required or malformed' });
         }
         util_1.filterImageFromURL(image_url)
             .then(local_path => {
@@ -49,7 +50,7 @@ const util_1 = require("./util/util");
         })
             .catch(err => {
             console.log(err);
-            res.status(400).send({ message: 'image url is required or malformed' });
+            res.status(422).send({ message: 'Error in reading the image url' });
         });
     }));
     //! END @TODO1
